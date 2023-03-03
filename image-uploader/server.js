@@ -96,10 +96,10 @@ function callName(req, res) {
 
 
     let doc = yaml.safeLoad(fs.readFileSync('../yolov5/data/hyps/hyp.custom-hyper.yaml', 'utf8'));
-    doc.scale = scale;
-    doc.degrees = degree;
-    doc.momentum = momentum;
-    doc.lr0 = rate;
+    doc.scale = parseFloat(scale);
+    doc.degrees = parseFloat(degree);
+    doc.momentum = parseFloat(momentum);
+    doc.lr0 = parseFloat(rate);
     console.log(doc);
     fs.writeFile('../yolov5/data/hyps/hyp.custom-hyper.yaml', yaml.safeDump(doc), (err) => {
         if (err) {
@@ -127,7 +127,7 @@ function callName(req, res) {
     // so, first name = Mike and last name = Will
     
     var process = spawn('python',["../yolov5/train.py" ,'--data', '../yolov5/data/data.yaml', '--weights', 'yolov5s.pt', '--epochs',epoch , '--batch', batch ,'--img' ,img] );
-    
+    // var process = spawn('python',["../test.py"] );
     console.log(`${epoch}`);
 
    // var process = spawn('python',["../yolov5/train.py" ,'--data', '../yolov5/data/data.yaml', '--weights', 'yolov5s.pt', '--epochs', '1', '--batch', '16' ,'--img' ,'640'] );
@@ -141,7 +141,7 @@ function callName(req, res) {
 
 
     process.stdout.on('data', function(data) {
-        res.send(data.toString());
+        res.json(data.toString());
     } )
 }
 
