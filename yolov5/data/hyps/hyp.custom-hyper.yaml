@@ -1,6 +1,6 @@
-lr0: 0.01
+lr0: 0.2
 lrf: 0.01
-momentum: 0.937
+momentum: 0.9
 weight_decay: 0.0005
 warmup_epochs: 3
 warmup_momentum: 0.8
@@ -16,9 +16,9 @@ fl_gamma: 0
 hsv_h: 0.015
 hsv_s: 0.7
 hsv_v: 0.4
-degrees: 0
+degrees: 11
 translate: 0.1
-scale: 0.5
+scale: 2
 shear: 0
 perspective: 0
 flipud: 0

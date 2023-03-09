@@ -7,18 +7,21 @@ const fsExtra = require('fs-extra');
 const PythonShell = require('python-shell').PythonShell;
 const find = require('find-process');
 const yaml = require('js-yaml');
-
-
-
 const app = express();
 
 app.use(express.static('public'))
 
 const directory = "public/images/uploads";
+const directoryDetect = "public/images/uploadsDetect";
 
 var storage = multer.diskStorage({
     destination: (req, file, cb) => {
-      cb(null, 'public/images/uploads')
+      console.log(file)
+      if(file.originalname.includes('detect')) {
+        cb(null, 'public/images/uploadsDetect')
+      } else {
+        cb(null, 'public/images/uploads')
+      }
     },
     filename: (req, file, cb) => {
       cb(null, Date.now() + '-' + file.originalname)
@@ -30,15 +33,14 @@ const upload = multer({ storage })
 app.use(cors());
 
 
-
-
 app.post('/upload', upload.single('image'), (req, res) => {
 
-  if (req.file)
-
+  if (req.file) {
+    console.log(req.file)
     res.json({
       imageUrl: `images/uploads/${req.file.filename}`
     });
+  }
   else 
     res.status("409").json("No Files to Upload.")
   });
@@ -63,9 +65,36 @@ app.get('/delete', (req, res) => {
 
 });
 
+app.get('/deletedetect', (req, res) => {
+  fsExtra.emptyDirSync(directoryDetect);
+  fs.readdir(directoryDetect, function(err, files) {
+    if (err) {
+       console.log("unexpected error")
+    } else {
+      if(!files.length) {
+           console.log("Empty directory")
+           res.json({"success": true})
+       } 
+    }
+  });
+});
 
 
 
+app.get('/detectimg',DetectImage);
+
+function DetectImage(req,res){
+  var spawn = require("child_process").spawn;
+  var process = spawn('python',["../yolov5/detect.py" , '--weights', '../yolov5/runs/train/exp/weights/NUT_BOLT_best.pt','--source', './public/images/uploadsDetect']);
+
+  //var process = spawn('python',["../yolov5/train.py" ,'--data', '../yolov5/data/data.yaml', '--weights', 'yolov5s.pt', '--epochs',epoch , '--batch', batch ,'--img' ,img] );
+  
+  process.stdout.on('data', function(data) {
+      console.log("script output");
+      console.log(data.toString());
+      res.json(data.toString());
+  } )
+}
 
 
 
@@ -133,7 +162,9 @@ function callName(req, res) {
    // var process = spawn('python',["../yolov5/train.py" ,'--data', '../yolov5/data/data.yaml', '--weights', 'yolov5s.pt', '--epochs', '1', '--batch', '16' ,'--img' ,'640'] );
 
     // var process = spawn('python',["../yolov5/train.py" ]);
-
+    // process.on('data', (data)=>{
+    //   console.log('here: ', data.toString())
+    // })
 
 
     // Takes stdout data from script which executed
@@ -141,8 +172,9 @@ function callName(req, res) {
 
 
     process.stdout.on('data', function(data) {
-        res.json(data.toString());
-    } )
+      console.log(data.toString())  
+      res.json(data.toString());
+    })
 }
 
 
@@ -266,34 +298,3 @@ const PORT = 5000;
 
 app.listen(PORT);
 console.log('api runnging on port: ' + PORT);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//Here are the option object in which arguments can be passed for the python_test.js.
-let options = {
-  mode: 'text',
-  pythonOptions: ['-u'], // get print results in real-time
-  //   scriptPath: 'path/to/my/scripts', //If you are having python_test.py script in same folder, then it's optional.
-  // args: ['shubhamk314'] //An argument which can be accessed in the script using sys.argv[1]
-};
-
-
-PythonShell.run('temp.py', options, function (err, result){
-    if (err) throw err;
-    console.log("hello");
-    console.log('result: ', result.toString());
-    res.json({"data":result.toString()})
-});
