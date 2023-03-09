@@ -13,7 +13,7 @@ class App extends React.Component{
                     role="status"
                     aria-hidden="true"
                     animation="border"/>
-                      Training...
+                      {this.props.btn}
                 </Button>
             </div>
         )

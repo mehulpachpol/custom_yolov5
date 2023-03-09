@@ -191,7 +191,7 @@ const Train=(props)=> {
     </div>
   </div>
   {!isloading && <button type="submit" className="btn btn-primary" onClick={showPy}>Train</button>}
-  {isloading && <Loadbutton/>}
+  {isloading && <Loadbutton btn={"Training..."}/>}
 </form>
 
 
