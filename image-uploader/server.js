@@ -16,7 +16,6 @@ const directoryDetect = "public/images/uploadsDetect";
 
 var storage = multer.diskStorage({
     destination: (req, file, cb) => {
-      console.log(file)
       if(file.originalname.includes('detect')) {
         cb(null, 'public/images/uploadsDetect')
       } else {
@@ -80,7 +79,6 @@ app.get('/deletedetect', (req, res) => {
 });
 
 
-
 app.get('/detectimg',DetectImage);
 
 function DetectImage(req,res){
@@ -93,7 +91,7 @@ function DetectImage(req,res){
       console.log("script output");
       console.log(data.toString());
       res.json(data.toString());
-  } )
+  })
 }
 
 
@@ -240,61 +238,60 @@ function pid_parent(req,res){
 
 
 
+app.get('/piddetect',(req, res) => {
+  piddetect_parent(req,res)
+});
+
+let flagd = true;
+
+function piddetect(req,res){
+    find('name', "python")
+    .then(function (list) {
+      let flag2 = false;
+      list.forEach((ele)=>{
+        if(ele.cmd.search("detect.py") != -1) {
+          console.log(ele.pid)
+          flag2 = true;
+        }
+        else{
+          console.log("Other process")
+        }
+      })
+
+      if(!flag2){
+        flagd = false;
+        clearInterval(timeIDdetect);
+        console.log("after clear interval")
+        res.json({"success": true})         ////////Zollllllllllllllerrrrr
+      }
+    }, function (err) {
+      console.log(err.stack || err);
+    });
+}
 
 
-// try {
-//   const doc = yaml.load(fs.readFileSync('/home/ixti/example.yml', 'utf8'));
-//   console.log(doc);
-// } catch (e) {
-//   console.log(e);
-// }
+let timeIDdetect;
 
+function piddetect_parent(req,res) {
+  timeIDdetect = setInterval(()=>{piddetect(req,res)}, 2000);       // Daya kuch to gadbad hai 
+}
 
+const directoryExp = '../yolov5/runs/detect/exp'
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// app.get('/python', (req, res)=>{
-
-//   //Here are the option object in which arguments can be passed for the python_test.js.
-// // let options = {
-// //   mode: 'text',
-// //   pythonOptions: ['-u'], // get print results in real-time
-// //   //   scriptPath: 'path/to/my/scripts', //If you are having python_test.py script in same folder, then it's optional.
-// //   // args: ['shubhamk314'] //An argument which can be accessed in the script using sys.argv[1]
-// // };
-
-
-// // PythonShell.run('temp.py', options, function (err, result){
-// //     if (err) throw err;
-// //     console.log("hello");
-// //     console.log('result: ', result.toString());
-// //     res.json({"data":result.toString()})
-// //   });
-
-// // console.log("check")
-  
-// // 
-
-
-
-// });
-
-
+app.get('/deleteexp', (req, res) => {
+  fsExtra.emptyDirSync(directoryExp);
+  fs.readdir(directoryExp, function(err, files) {
+    if (err) {
+       console.log("unexpected error")
+    } else {
+      if(!files.length) {
+           console.log("Empty directory")
+           res.json({"success": true})
+       } 
+    }
+  });
+});
 
 const PORT = 5000;
-
 app.listen(PORT);
 console.log('api runnging on port: ' + PORT);

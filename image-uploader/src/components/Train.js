@@ -71,17 +71,17 @@ const Train=(props)=> {
       test();
       console.log("Python triggered")
       const a = axios.get(BASE_URL + 'name',
-      {
-        headers: {
-          'batchsize': batchsize,
-          'epochs': epoch,
-          'image' : imagesize,
-          "rate"  : rate,
-          "scale" : scale,
-          "degree" : degree ,
-          "momentum" : momentum
-                }
-      }
+        {
+          headers: {
+            'batchsize': batchsize,
+            'epochs': epoch,
+            'image' : imagesize,
+            "rate"  : rate,
+            "scale" : scale,
+            "degree" : degree ,
+            "momentum" : momentum
+          }
+        }
       )
       // listReactFiles(this.state.directory).then(files => console.log(files))
       a.then(function (response) {
@@ -191,7 +191,7 @@ const Train=(props)=> {
     </div>
   </div>
   {!isloading && <button type="submit" className="btn btn-primary" onClick={showPy}>Train</button>}
-  {isloading && <Loadbutton btn={"Training..."}/>}
+  {isloading && <Loadbutton btn={"Training..."} color={"primary"}/>}
 </form>
 
 

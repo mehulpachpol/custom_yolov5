@@ -5,7 +5,7 @@ class App extends React.Component{
     render(){
         return(
             <div>
-                <Button variant="primary" disabled>
+                <Button variant={this.props.color} disabled>
                     <Spinner
                     as="span"
                     variant="warning"
