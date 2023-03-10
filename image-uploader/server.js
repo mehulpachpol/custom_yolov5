@@ -34,7 +34,6 @@ app.use(cors());
 
 app.post('/upload', upload.single('image'), (req, res) => {
   if (req.file) {
-    console.log(req.file)
     res.json({
       imageUrl: `images/uploads/${req.file.filename}`
     });
@@ -74,13 +73,13 @@ app.get('/deletedetect', (req, res) => {
 app.get('/detectimg',DetectImage);
 
 function DetectImage(req,res){
+  let classes = req.header('classes')
+  console.log(classes)
   var spawn = require("child_process").spawn;
   var process = spawn('python',["../yolov5/detect.py" , '--weights', '../yolov5/runs/train/exp/weights/NUT_BOLT_best.pt','--source', './public/images/uploadsDetect']);
   //var process = spawn('python',["../yolov5/train.py" ,'--data', '../yolov5/data/data.yaml', '--weights', 'yolov5s.pt', '--epochs',epoch , '--batch', batch ,'--img' ,img] );
   
   process.stdout.on('data', function(data) {
-      console.log("script output");
-      console.log(data.toString());
       res.json(data.toString());
   })
 }
@@ -169,22 +168,24 @@ let flag = true;
 function pid(req,res){
   find('name', "python")
   .then(function (list) {
-    let flag2 = false;
-    list.forEach((ele)=>{
-      if(ele.cmd.search("train.py")!=-1) {    
-        console.log(ele.pid)
-        flag2 = true;
+    if(flag) {
+      let flag2 = false;
+      list.forEach((ele)=>{
+        if(ele.cmd.search("train.py")!=-1) {    
+          console.log(ele.pid)
+          flag2 = true;
+        }
+        else{
+          console.log("nhi bhai")    
+        }
+      })
+      if(!flag2){
+        flag = false;
+        clearInterval(timeID);
+        console.log("hello");
+        reset_parameters();
+        res.json({"success": true})         ////////Zollllllllllllllerrrrr
       }
-      else{
-        console.log("nhi bhai")    
-      }
-    })
-    if(!flag2){
-      flag = false;
-      clearInterval(timeID);
-      console.log("hello");
-      reset_parameters();
-      res.json({"success": true})         ////////Zollllllllllllllerrrrr
     }
   },function (err) {
     console.log(err.stack || err);
@@ -218,22 +219,24 @@ let flagd = true;
 function piddetect(req,res){
   find('name', "python")
   .then(function (list) {
-    let flag2 = false;
-    list.forEach((ele)=>{
-      if(ele.cmd.search("detect.py") != -1) {
-        console.log(ele.pid)
-        flag2 = true;
-      }
-      else{
-        console.log("Other process")
-      }
-    })
+    if(flagd) {
+      let flag2 = false;
+      list.forEach((ele)=>{
+        if(ele.cmd.search("detect.py") != -1) {
+          console.log(ele.pid)
+          flag2 = true;
+        }
+        else{
+          console.log("Other process")
+        }
+      })
 
-    if(!flag2){
-      flagd = false;
-      clearInterval(timeIDdetect);
-      console.log("after clear interval")
-      res.json({"success": true})         ////////Zollllllllllllllerrrrr
+      if(!flag2){
+        flagd = false;
+        clearInterval(timeIDdetect);
+        console.log("after clear interval")
+        res.json({"success": true})         ////////Zollllllllllllllerrrrr
+      }
     }
   }, function (err) {
     console.log(err.stack || err);
@@ -248,6 +251,7 @@ function piddetect_parent(req,res) {
 }
 
 const directoryExp = '../yolov5/runs/detect/exp'
+const directoryLabels = '../yolov5/runs/detect/labels'
 
 app.get('/deleteexp', (req, res) => {
   fsExtra.emptyDirSync(directoryExp);
@@ -256,9 +260,23 @@ app.get('/deleteexp', (req, res) => {
        console.log("unexpected error")
     } else {
       if(!files.length) {
-           console.log("Empty directory")
-           res.json({"success": true})
-       } 
+        console.log("Empty directory")
+        res.json({"success": true})
+      }
+    }
+  });
+});
+
+app.get('/deletelabels', (req, res) => {
+  fsExtra.emptyDirSync(directoryLabels);
+  fs.readdir(directoryLabels, function(err, files) {
+    if (err) {
+       console.log("unexpected error")
+    } else {
+      if(!files.length) {
+        console.log("Empty labels directory")
+        res.json({"success": true})
+      }
     }
   });
 });

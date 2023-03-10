@@ -25,6 +25,7 @@ function Detection() {
     const [currClasses, setCurrClasses] = useState([]);
     const [defectDescription, setDefectDescription] = useState('Defect description by selecting item in above pane');
     const [classes, setClasses] = useState([]);
+    const [checked, setChecked] = useState([]);
 
     const layoutCSS = {
         height: '100%',
@@ -53,6 +54,7 @@ function Detection() {
 	    	return axios.post(BASE_URL + 'upload', data)
 	    	.then(response => {
                 deleteExp()
+                // deleteLabels()
                 console.log(response.data.imageUrl)
 				setImageUrls([response.data.imageUrl, ...imageUrls]);
 			})
@@ -82,12 +84,32 @@ function Detection() {
 		return a
 	}
 
+    const deleteLabels = () =>{
+		console.log("Started deleting")
+		const a = axios.get(BASE_URL + 'deletelabels')
+		// listReactFiles(this.state.directory).then(files => console.log(files))
+		a.then(function (response) {
+			console.log(response.data);})
+		return a
+	}
+
     const DetectPy = (e) => {
         setDetected(false)
         e.preventDefault()
         test()
+        let active = ''
+        for(let i=0; i<checked.length; i++) {
+            if(checked[i] === true) active = active + i + ' '
+        }
+        console.log(active)
         console.log("Python triggered")
-        const a = axios.get(BASE_URL + 'detectimg')
+        const a = axios.get(BASE_URL + 'detectimg',
+            {
+                headers: {
+                    'classes': active
+                }
+            }
+        )
         a.then(function (response) {
           console.log(response);
         })
@@ -102,7 +124,6 @@ function Detection() {
           console.log(response.data);
           setLoading(false)
           setDetected(true)
-          f = true
         })
         return a
     }
@@ -116,7 +137,7 @@ function Detection() {
 
     useEffect(() => {
         setAllImages(importAll(require.context('../../../yolov5/runs/detect/exp', false, /\.(png|jpe?g|svg)$/)))
-        setAllLabels(importAll(require.context('../../../yolov5/runs/detect/exp/labels', false, /\.(txt)$/)))
+        setAllLabels(importAll(require.context('../../../yolov5/runs/detect/labels', false, /\.(txt)$/)))
     }, [detected])
 
     useEffect(() => {
@@ -183,7 +204,9 @@ function Detection() {
     const readDataFile = () => {
         const a = axios.get(BASE_URL + 'datafile')
         a.then(function (response) {
-          setClasses(response.data.datafile.names);
+            setClasses(response.data.datafile.names);
+            let arr = new Array(response.data.datafile.names.length).fill(true);
+            setChecked(arr)
         })
         return a
     }
@@ -191,6 +214,13 @@ function Detection() {
     useEffect(()=>{
         readDataFile()
     }, [])
+
+    const handleCheckBox = (index) => {
+        let arr = checked
+        arr[index] = !arr[index]
+        setChecked(arr)
+        // console.log(arr)
+    }
 
     return (
         <div style={{ height: "100vh", "width": "100vw" }}>
@@ -218,7 +248,18 @@ function Detection() {
                     </SplitPane>
                     <SplitPane split="horizontal" sizes={sizes3}>
                         <div style={{ ...layoutCSS, background: '#bbb' }}>
-                            What we are detecting (Checkboxes)
+                            <div style={{"display": "flex"}}>
+                            {
+                                classes.map((element, ind) => {
+                                    return(
+                                        <div style={{"margin": "5px"}}>
+                                            <label style={{"fontSize": "1.4rem"}}>{element}</label>
+                                            <input style={{"margin": "3px"}} type={"checkbox"} defaultChecked onClick={()=>handleCheckBox(ind)}></input>
+                                        </div>
+                                    )
+                                })
+                            }
+                            </div>
                         </div>
                         <SplitPane split="vertical" sizes={sizes4}>
                             <div style={{ ...layoutCSS, background: '#eee' }}>
