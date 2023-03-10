@@ -33,7 +33,6 @@ app.use(cors());
 
 
 app.post('/upload', upload.single('image'), (req, res) => {
-
   if (req.file) {
     console.log(req.file)
     res.json({
@@ -44,47 +43,39 @@ app.post('/upload', upload.single('image'), (req, res) => {
     res.status("409").json("No Files to Upload.")
   });
 
-
 app.get('/delete', (req, res) => {
-
   fsExtra.emptyDirSync(directory);
-
   fs.readdir(directory, function(err, files) {
     if (err) {
        console.log("error hai ")
     } else {
       if(!files.length) {
-           console.log("Empty  hai ")
-           res.json({"success": true})
-       } 
-
+        console.log("Empty  hai ")
+        res.json({"success": true})
+      }
     }
-
   });
-
 });
 
 app.get('/deletedetect', (req, res) => {
   fsExtra.emptyDirSync(directoryDetect);
   fs.readdir(directoryDetect, function(err, files) {
     if (err) {
-       console.log("unexpected error")
+      console.log("unexpected error")
     } else {
       if(!files.length) {
-           console.log("Empty directory")
-           res.json({"success": true})
-       } 
+        console.log("Empty directory")
+        res.json({"success": true})
+      } 
     }
   });
 });
-
 
 app.get('/detectimg',DetectImage);
 
 function DetectImage(req,res){
   var spawn = require("child_process").spawn;
   var process = spawn('python',["../yolov5/detect.py" , '--weights', '../yolov5/runs/train/exp/weights/NUT_BOLT_best.pt','--source', './public/images/uploadsDetect']);
-
   //var process = spawn('python',["../yolov5/train.py" ,'--data', '../yolov5/data/data.yaml', '--weights', 'yolov5s.pt', '--epochs',epoch , '--batch', batch ,'--img' ,img] );
   
   process.stdout.on('data', function(data) {
@@ -95,147 +86,127 @@ function DetectImage(req,res){
 }
 
 
-
-
 app.get('/name', callName);
   
-function callName(req, res) {
-      
-    // Use child_process.spawn method from 
-    // child_process module and assign it
-    // to variable spawn
+function callName(req, res) {      
+  // Use child_process.spawn method from 
+  // child_process module and assign it
+  // to variable spawn
 
-    let batch = req.header('batchsize')
-    let epoch = req.header('epochs')
-    let img = req.header('image')
-    let rate = req.header('rate')
-    let scale = req.header('scale')
-    let degree = req.header('degree')
-    let momentum = req.header('momentum')
+  let batch = req.header('batchsize')
+  let epoch = req.header('epochs')
+  let img = req.header('image')
+  let rate = req.header('rate')
+  let scale = req.header('scale')
+  let degree = req.header('degree')
+  let momentum = req.header('momentum')
 
-    console.log(batch);
-    console.log(epoch);
-    console.log(img);
-    console.log(rate);
-    console.log(scale);
-    console.log(degree);
-    console.log(momentum);
+  console.log(batch);
+  console.log(epoch);
+  console.log(img);
+  console.log(rate);
+  console.log(scale);
+  console.log(degree);
+  console.log(momentum);
 
+  let doc = yaml.safeLoad(fs.readFileSync('../yolov5/data/hyps/hyp.custom-hyper.yaml', 'utf8'));
+  doc.scale = parseFloat(scale);
+  doc.degrees = parseFloat(degree);
+  doc.momentum = parseFloat(momentum);
+  doc.lr0 = parseFloat(rate);
+  console.log(doc);
+  fs.writeFile('../yolov5/data/hyps/hyp.custom-hyper.yaml', yaml.safeDump(doc), (err) => {
+      if (err) {
+          console.log(err);
+      }
+  });
+  console.log(doc);
 
-    let doc = yaml.safeLoad(fs.readFileSync('../yolov5/data/hyps/hyp.custom-hyper.yaml', 'utf8'));
-    doc.scale = parseFloat(scale);
-    doc.degrees = parseFloat(degree);
-    doc.momentum = parseFloat(momentum);
-    doc.lr0 = parseFloat(rate);
-    console.log(doc);
-    fs.writeFile('../yolov5/data/hyps/hyp.custom-hyper.yaml', yaml.safeDump(doc), (err) => {
-        if (err) {
-            console.log(err);
-        }
-    });
-    console.log(doc);
+  batch = batch.toString()
+  epoch = epoch.toString()
+  img  = img.toString()
 
+  console.log(batch);
 
-
-    batch = batch.toString()
-    epoch = epoch.toString()
-    img  = img.toString()
-
-    console.log(batch);
-
-    var spawn = require("child_process").spawn;
-      
-    // Parameters passed in spawn -
-    // 1. type_of_script
-    // 2. list containing Path of the script
-    //    and arguments for the script 
-      
-    // E.g : http://localhost:3000/name?firstname=Mike&lastname=Will
-    // so, first name = Mike and last name = Will
+  var spawn = require("child_process").spawn;
     
-    var process = spawn('python',["../yolov5/train.py" ,'--data', '../yolov5/data/data.yaml', '--weights', 'yolov5s.pt', '--epochs',epoch , '--batch', batch ,'--img' ,img] );
-    // var process = spawn('python',["../test.py"] );
-    console.log(`${epoch}`);
+  // Parameters passed in spawn -
+  // 1. type_of_script
+  // 2. list containing Path of the script
+  //    and arguments for the script 
+    
+  // E.g : http://localhost:3000/name?firstname=Mike&lastname=Will
+  // so, first name = Mike and last name = Will
+  
+  var process = spawn('python',["../yolov5/train.py" ,'--data', '../yolov5/data/data.yaml', '--weights', 'yolov5s.pt', '--epochs',epoch , '--batch', batch ,'--img' ,img] );
+  // var process = spawn('python',["../test.py"] );
+  console.log(`${epoch}`);
 
-   // var process = spawn('python',["../yolov5/train.py" ,'--data', '../yolov5/data/data.yaml', '--weights', 'yolov5s.pt', '--epochs', '1', '--batch', '16' ,'--img' ,'640'] );
+  // var process = spawn('python',["../yolov5/train.py" ,'--data', '../yolov5/data/data.yaml', '--weights', 'yolov5s.pt', '--epochs', '1', '--batch', '16' ,'--img' ,'640'] );
 
-    // var process = spawn('python',["../yolov5/train.py" ]);
-    // process.on('data', (data)=>{
-    //   console.log('here: ', data.toString())
-    // })
-
-
-    // Takes stdout data from script which executed
-    // with arguments and send this data to res object
+  // var process = spawn('python',["../yolov5/train.py" ]);
+  // process.on('data', (data)=>{
+  //   console.log('here: ', data.toString())
+  // })
 
 
-    process.stdout.on('data', function(data) {
-      console.log(data.toString())  
-      res.json(data.toString());
-    })
+  // Takes stdout data from script which executed
+  // with arguments and send this data to res object
+
+
+  process.stdout.on('data', function(data) {
+    console.log(data.toString())  
+    res.json(data.toString());
+  })
 }
-
-
-
 
 app.get('/pid',(req, res) => {
   pid_parent(req,res)
 });
 
-
 let flag = true;
 
 function pid(req,res){
-    find('name', "python")
-    .then(function (list) {
-      let flag2 = false;
-      list.forEach((ele)=>{
-        if(ele.cmd.search("train.py")!=-1) {
-          
-          console.log(ele.pid)
-          flag2 = true;
-        }
-        else{
-          console.log("nhi bhai")
-          
-        }
-      })
-      if(!flag2){
-        flag = false;
-        clearInterval(timeID);
-        console.log("hello");
-        reset_parameters();
-        res.json({"success": true})         ////////Zollllllllllllllerrrrr
+  find('name', "python")
+  .then(function (list) {
+    let flag2 = false;
+    list.forEach((ele)=>{
+      if(ele.cmd.search("train.py")!=-1) {    
+        console.log(ele.pid)
+        flag2 = true;
       }
-    }, function (err) {
-      console.log(err.stack || err);
-    });
-
+      else{
+        console.log("nhi bhai")    
+      }
+    })
+    if(!flag2){
+      flag = false;
+      clearInterval(timeID);
+      console.log("hello");
+      reset_parameters();
+      res.json({"success": true})         ////////Zollllllllllllllerrrrr
+    }
+  },function (err) {
+    console.log(err.stack || err);
+  });
 }
-
 
 let timeID;
 
-
 function reset_parameters(){
-
   let doc = yaml.safeLoad(fs.readFileSync('../yolov5/data/hyps/hyp.scratch-low.yaml', 'utf8'));
-
     console.log(doc);
     fs.writeFile('../yolov5/data/hyps/hyp.custom-hyper.yaml', yaml.safeDump(doc), (err) => {
-        if (err) {
-            console.log(err);
-        }
+      if (err) {
+        console.log(err);
+      }
     });
     console.log(doc);
-
 }
 
 function pid_parent(req,res){
-
   timeID = setInterval(()=>{pid(req,res)}, 2000);       // Daya kuch to gadbad hai 
 }
-
 
 
 app.get('/piddetect',(req, res) => {
@@ -245,28 +216,28 @@ app.get('/piddetect',(req, res) => {
 let flagd = true;
 
 function piddetect(req,res){
-    find('name', "python")
-    .then(function (list) {
-      let flag2 = false;
-      list.forEach((ele)=>{
-        if(ele.cmd.search("detect.py") != -1) {
-          console.log(ele.pid)
-          flag2 = true;
-        }
-        else{
-          console.log("Other process")
-        }
-      })
-
-      if(!flag2){
-        flagd = false;
-        clearInterval(timeIDdetect);
-        console.log("after clear interval")
-        res.json({"success": true})         ////////Zollllllllllllllerrrrr
+  find('name', "python")
+  .then(function (list) {
+    let flag2 = false;
+    list.forEach((ele)=>{
+      if(ele.cmd.search("detect.py") != -1) {
+        console.log(ele.pid)
+        flag2 = true;
       }
-    }, function (err) {
-      console.log(err.stack || err);
-    });
+      else{
+        console.log("Other process")
+      }
+    })
+
+    if(!flag2){
+      flagd = false;
+      clearInterval(timeIDdetect);
+      console.log("after clear interval")
+      res.json({"success": true})         ////////Zollllllllllllllerrrrr
+    }
+  }, function (err) {
+    console.log(err.stack || err);
+  });
 }
 
 
@@ -291,6 +262,11 @@ app.get('/deleteexp', (req, res) => {
     }
   });
 });
+
+app.get('/datafile', (req, res) => {
+  let doc = yaml.safeLoad(fs.readFileSync('../yolov5/data/data.yaml', 'utf8'));
+  res.json({"datafile": doc})
+})
 
 const PORT = 5000;
 app.listen(PORT);

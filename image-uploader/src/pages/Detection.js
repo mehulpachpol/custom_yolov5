@@ -21,8 +21,10 @@ function Detection() {
     const [isloading ,setLoading] = useState(false);
     const [detected ,setDetected] = useState(false);
     const [current, setCurrent] = useState(1);
-    const [labeltxt, setLabeltxt] = useState('')
-    const [currClasses, setCurrClasses] = useState([])
+    const [labeltxt, setLabeltxt] = useState('');
+    const [currClasses, setCurrClasses] = useState([]);
+    const [defectDescription, setDefectDescription] = useState('Defect description by selecting item in above pane');
+    const [classes, setClasses] = useState([]);
 
     const layoutCSS = {
         height: '100%',
@@ -121,7 +123,7 @@ function Detection() {
         console.log(allImages)
         console.log(allLabels)
         showFile()
-    }, [allImages, allLabels, current])
+    }, [allImages, allLabels, current, classes])
 
     const myStatusFormatter = (currentItem, total) => {
         setCurrent(currentItem)
@@ -133,13 +135,10 @@ function Detection() {
         fetch(allLabels[current-1])
         .then(r => r.text())
         .then(text => {
-            // console.log('text decoded:', text);
-            // setLabeltxt(text)
             readlabel(text)
         });
     }
 
-    const classes = ['nut', 'bolt', 'threads', 'rust', 'hole', 'cat', 'dog', 'pig', 'horse', 'lion', 'lyon']
     const readlabel = (text) => {
         let arr = []
         let currclasses = []
@@ -154,9 +153,44 @@ function Detection() {
         console.log(uniqueArray)
     }
 
-    // useEffect(()=>{
-    //     readlabel()
-    // }, [current])
+    const handleDefectDescription = (element) => {
+        console.log(element)
+        if(element === 'nut') {
+            setDefectDescription('Nut description')
+        } else if(element === 'bolt') {
+            setDefectDescription('Bolt description')
+        } else if(element === 'threads') {
+            setDefectDescription('Threads description')
+        } else if(element === 'rust') {
+            setDefectDescription('Rust description')
+        } else if(element === 'hole') {
+            setDefectDescription('Hole description')
+        } else if(element === 'cat') {
+            setDefectDescription('Cat description')
+        } else if(element === 'dog') {
+            setDefectDescription('Dog description')
+        } else if(element === 'pig') {
+            setDefectDescription('Pig description')
+        } else if(element === 'horse') {
+            setDefectDescription('Horse description')
+        } else if(element === 'lion') {
+            setDefectDescription('Lion description')
+        } else if(element === 'lyon') {
+            setDefectDescription('Lyon description')
+        }
+    }
+
+    const readDataFile = () => {
+        const a = axios.get(BASE_URL + 'datafile')
+        a.then(function (response) {
+          setClasses(response.data.datafile.names);
+        })
+        return a
+    }
+
+    useEffect(()=>{
+        readDataFile()
+    }, [])
 
     return (
         <div style={{ height: "100vh", "width": "100vw" }}>
@@ -166,20 +200,20 @@ function Detection() {
             >
                 <SplitPane sizes={sizes1}>
                     <SplitPane split="horizontal" sizes={sizes2}>
-                        <div style={{ ...layoutCSS, background: '#ddd', "display":"flex"}}>
+                        <div style={{ ...layoutCSS, background: '#ddd', "display":"flex", "flexDirection": "column"}}>
                             <div><h4>List of all defects detected in the image</h4></div>
-                            <ul>
+                            <div>
                             {
                                 currClasses.map((element) => {
                                     return(
-                                        <li style={{"fontSize":"1.5rem"}}>{element}</li>
+                                        <a key={element+'50'} onClick={()=>{handleDefectDescription(element)}} style={{"fontSize":"1.5rem", "display": "block"}}>{element}</a>
                                     )
                                 })
                             }
-                            </ul>
+                            </div>
                         </div>
                         <div style={{ ...layoutCSS, background: '#d5d7d9' }}>
-                            Defect description by selecting item in above pane
+                            <div style={{"fontSize":"1.5rem"}}>{defectDescription}</div>
                         </div>
                     </SplitPane>
                     <SplitPane split="horizontal" sizes={sizes3}>

@@ -3,7 +3,8 @@ val: ../../valid/images
 test: ../../test/images
 
 nc: 2
-names: ['cat', 'dog']
+# names: ['cat', 'dog']
+names: ['nut', 'bolt', 'threads', 'rust', 'hole', 'cat', 'dog', 'pig', 'horse', 'lion', 'lyon']
 
 roboflow:
   workspace: project
